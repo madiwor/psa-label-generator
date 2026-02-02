@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
     <title>Generador de Códigos PSA - Trazabilidad Pedaliers</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
@@ -313,7 +312,7 @@
                     <div class="form-group">
                         <label for="proveedor">Código Proveedor (Car 3-4)</label>
                         <select id="proveedor">
-                            <option value="FG">FG - Proveedor A</option>
+                            <option value="FG" selected>FG - Proveedor Predeterminado</option>
                             <option value="PA">PA - Proveedor A</option>
                             <option value="PB">PB - Proveedor B</option>
                             <option value="PC">PC - Proveedor C</option>
@@ -468,6 +467,7 @@
             // Generar códigos con un pequeño delay para mostrar loading
             setTimeout(() => {
                 codigosGenerados = [];
+                const prefijo = `${naturaleza}${proveedor}${referencia}`; // Prefijo completo para columna B
                 
                 for (let i = inicio; i <= fin; i++) {
                     const numeroSerie = formatearNumeroSerie(i);
@@ -476,7 +476,9 @@
                     
                     codigosGenerados.push({
                         codigoCompleto: `${naturaleza}${proveedor}${referencia} ${numeroSerie} ${caracterControl}`,
+                        codigoCompletoSinEspacios: `${codigoBase}${caracterControl}`, // Para columna A
                         codigoBase: codigoBase,
+                        prefijo: prefijo, // Para columna B
                         caracterControl: caracterControl,
                         numeroSerie: numeroSerie
                     });
@@ -524,17 +526,15 @@
                 return;
             }
 
-            // Preparar datos para Excel
-            const data = [
-                ['Código Completo', 'Código Base', 'Número Serie', 'Carácter Control']
-            ];
+            // Preparar datos para Excel SIN ENCABEZADOS
+            const data = [];
 
             codigosGenerados.forEach(codigo => {
                 data.push([
-                    codigo.codigoCompleto,
-                    codigo.codigoBase,
-                    codigo.numeroSerie,
-                    codigo.caracterControl
+                    codigo.codigoCompletoSinEspacios,  // Columna A: Código completo sin espacios
+                    codigo.prefijo,                     // Columna B: Prefijo (84FG01)
+                    codigo.numeroSerie,                 // Columna C: Número de serie
+                    codigo.caracterControl              // Columna D: Carácter de control
                 ]);
             });
 
@@ -544,10 +544,10 @@
 
             // Ajustar ancho de columnas
             ws['!cols'] = [
-                { wch: 25 },
-                { wch: 20 },
-                { wch: 15 },
-                { wch: 15 }
+                { wch: 18 },  // Columna A: Código completo
+                { wch: 12 },  // Columna B: Prefijo
+                { wch: 12 },  // Columna C: Número serie
+                { wch: 8 }    // Columna D: Carácter control
             ];
 
             // Agregar worksheet al workbook
